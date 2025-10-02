@@ -14,6 +14,7 @@ import javax.inject.Inject
 @HiltViewModel
 class EntradaViewModel @Inject constructor(
     private val getEntradasUseCase: GetEntradasUseCase,
+    private val getEntradaByIdUseCase: GetEntradaByIdUseCase,
     private val upsertEntradaUseCase: UpsertEntradaUseCase,
     private val deleteEntradaUseCase: DeleteEntradaUseCase,
     private val validateEntradaUseCase: ValidateEntradaUseCase
@@ -29,29 +30,38 @@ class EntradaViewModel @Inject constructor(
     fun onEvent(event: EntradaEvent) {
         when (event) {
             is EntradaEvent.NombreClienteChanged -> {
-                _uiState.update { it.copy(
-                    nombreCliente = event.nombreCliente,
-                    nombreClienteError = null,
-                    errorMessage = null,
-                    successMessage = null
-                )}
+                _uiState.update {
+                    it.copy(
+                        nombreCliente = event.nombreCliente,
+                        nombreClienteError = null,
+                        errorMessage = null,
+                        successMessage = null
+                    )
+                }
             }
+
             is EntradaEvent.CantidadChanged -> {
-                _uiState.update { it.copy(
-                    cantidad = event.cantidad,
-                    cantidadError = null,
-                    errorMessage = null,
-                    successMessage = null
-                )}
+                _uiState.update {
+                    it.copy(
+                        cantidad = event.cantidad,
+                        cantidadError = null,
+                        errorMessage = null,
+                        successMessage = null
+                    )
+                }
             }
+
             is EntradaEvent.PrecioChanged -> {
-                _uiState.update { it.copy(
-                    precio = event.precio,
-                    precioError = null,
-                    errorMessage = null,
-                    successMessage = null
-                )}
+                _uiState.update {
+                    it.copy(
+                        precio = event.precio,
+                        precioError = null,
+                        errorMessage = null,
+                        successMessage = null
+                    )
+                }
             }
+
             EntradaEvent.SaveEntrada -> saveEntrada()
             EntradaEvent.ClearForm -> clearForm()
             is EntradaEvent.DeleteEntrada -> deleteEntrada(event.idEntrada)
@@ -63,18 +73,53 @@ class EntradaViewModel @Inject constructor(
         viewModelScope.launch {
             getEntradasUseCase()
                 .catch { exception ->
-                    _uiState.update { it.copy(
-                        isLoading = false,
-                        errorMessage = "Error al cargar entradas: ${exception.message}"
-                    )}
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = "Error al cargar entradas: ${exception.message}"
+                        )
+                    }
                 }
                 .collect { entradas ->
-                    _uiState.update { it.copy(
-                        entradas = entradas,
-                        isLoading = false,
-                        errorMessage = null
-                    )}
+                    _uiState.update {
+                        it.copy(
+                            entradas = entradas,
+                            isLoading = false,
+                            errorMessage = null
+                        )
+                    }
                 }
+        }
+    }
+
+    fun loadEntrada(idEntrada: Int) {
+        viewModelScope.launch {
+            try {
+                val entrada = getEntradaByIdUseCase(idEntrada)
+                if (entrada != null) {
+                    _uiState.update {
+                        it.copy(
+                            idEntrada = entrada.idEntrada,
+                            fecha = entrada.fecha,
+                            nombreCliente = entrada.nombreCliente,
+                            cantidad = entrada.cantidad.toString(),
+                            precio = entrada.precio.toString(),
+                            isEditing = true,
+                            nombreClienteError = null,
+                            cantidadError = null,
+                            precioError = null,
+                            errorMessage = null,
+                            successMessage = null
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        errorMessage = "Error al cargar entrada: ${e.message}"
+                    )
+                }
+            }
         }
     }
 
@@ -82,24 +127,25 @@ class EntradaViewModel @Inject constructor(
         viewModelScope.launch {
             val state = _uiState.value
 
-            // Validaciones
             val nombreError = validateEntradaUseCase.validateNombreCliente(state.nombreCliente)
             val cantidadError = validateEntradaUseCase.validateCantidad(state.cantidad)
             val precioError = validateEntradaUseCase.validatePrecio(state.precio)
 
             if (nombreError != null || cantidadError != null || precioError != null) {
-                _uiState.update { it.copy(
-                    nombreClienteError = nombreError,
-                    cantidadError = cantidadError,
-                    precioError = precioError,
-                    isLoading = false
-                )}
+                _uiState.update {
+                    it.copy(
+                        nombreClienteError = nombreError,
+                        cantidadError = cantidadError,
+                        precioError = precioError,
+                        isLoading = false
+                    )
+                }
                 return@launch
             }
 
             _uiState.update { it.copy(isLoading = true) }
 
-            val fechaActual = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(Date())
+            val fechaActual = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
 
             val entrada = EntradaHuacal(
                 idEntrada = state.idEntrada,
@@ -116,14 +162,22 @@ class EntradaViewModel @Inject constructor(
                     } else {
                         "Entrada guardada exitosamente"
                     }
-                    clearForm()
-                    _uiState.update { it.copy(successMessage = message) }
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            successMessage = message,
+                            errorMessage = null
+                        )
+                    }
                 }
                 .onFailure { exception ->
-                    _uiState.update { it.copy(
-                        isLoading = false,
-                        errorMessage = exception.message ?: "Error desconocido"
-                    )}
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = exception.message ?: "Error desconocido",
+                            successMessage = null
+                        )
+                    }
                 }
         }
     }
@@ -132,33 +186,39 @@ class EntradaViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 deleteEntradaUseCase(idEntrada)
-                _uiState.update { it.copy(
-                    successMessage = "Entrada eliminada exitosamente",
-                    errorMessage = null
-                )}
+                _uiState.update {
+                    it.copy(
+                        successMessage = "Entrada eliminada exitosamente",
+                        errorMessage = null
+                    )
+                }
             } catch (e: Exception) {
-                _uiState.update { it.copy(
-                    errorMessage = "Error al eliminar entrada: ${e.message}",
-                    successMessage = null
-                )}
+                _uiState.update {
+                    it.copy(
+                        errorMessage = "Error al eliminar entrada: ${e.message}",
+                        successMessage = null
+                    )
+                }
             }
         }
     }
 
     private fun selectEntrada(entrada: EntradaHuacal) {
-        _uiState.update { it.copy(
-            idEntrada = entrada.idEntrada,
-            fecha = entrada.fecha,
-            nombreCliente = entrada.nombreCliente,
-            cantidad = entrada.cantidad.toString(),
-            precio = entrada.precio.toString(),
-            nombreClienteError = null,
-            cantidadError = null,
-            precioError = null,
-            errorMessage = null,
-            successMessage = null,
-            isEditing = true
-        )}
+        _uiState.update {
+            it.copy(
+                idEntrada = entrada.idEntrada,
+                fecha = entrada.fecha,
+                nombreCliente = entrada.nombreCliente,
+                cantidad = entrada.cantidad.toString(),
+                precio = entrada.precio.toString(),
+                nombreClienteError = null,
+                cantidadError = null,
+                precioError = null,
+                errorMessage = null,
+                successMessage = null,
+                isEditing = true
+            )
+        }
     }
 
     private fun clearForm() {

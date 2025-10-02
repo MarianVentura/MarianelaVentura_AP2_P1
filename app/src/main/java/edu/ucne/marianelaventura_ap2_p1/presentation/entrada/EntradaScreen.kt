@@ -97,7 +97,7 @@ fun EntradaScreenContent(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
-                        text = if (state.isEditing) "Actualizar Información" else "Registrar Nueva Entrada",
+                        text = if (state.isEditing) "Editar Entrada" else "Registrar Nueva Entrada",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold
                         ),

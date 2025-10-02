@@ -56,6 +56,7 @@ fun HomeScreen(
                 onClick = onNavigateToCreateEntrada,
                 containerColor = Color(0xFF4CAF50),
                 contentColor = Color.White,
+                modifier = Modifier.padding(bottom = 72.dp),
                 elevation = FloatingActionButtonDefaults.elevation(
                     defaultElevation = 8.dp,
                     pressedElevation = 12.dp
@@ -324,14 +325,88 @@ fun FooterTotal(
     }
 }
 
+// Preview del estado vacío
 @Preview(showSystemUi = true)
 @Composable
-fun HomeScreenPreview() {
+fun HomeScreenEmptyPreview() {
     MaterialTheme {
-        HomeScreen(
-            onNavigateToJugadores = {},
-            onNavigateToPartidas = {},
-            onNavigateToLogros = {}
+        EmptyStateScreen(
+            modifier = Modifier.fillMaxSize()
         )
+    }
+}
+
+// Preview de una tarjeta de entrada
+@Preview(showBackground = true)
+@Composable
+fun EntradaSimpleCardPreview() {
+    MaterialTheme {
+        EntradaSimpleCard(
+            entrada = EntradaHuacal(
+                idEntrada = 1,
+                fecha = "01/10/2025",
+                nombreCliente = "Roronoa Zoro",
+                cantidad = 50,
+                precio = 150.0
+            ),
+            onEdit = {},
+            onDelete = {}
+        )
+    }
+}
+
+// Preview del footer con totales
+@Preview(showBackground = true)
+@Composable
+fun FooterTotalPreview() {
+    MaterialTheme {
+        FooterTotal(
+            cantidadEntradas = 5,
+            totalGeneral = 12500.50
+        )
+    }
+}
+
+// Preview de la pantalla completa con datos
+@Preview(showSystemUi = true)
+@Composable
+fun HomeScreenWithDataPreview() {
+    MaterialTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(horizontal = 8.dp),
+                    contentPadding = PaddingValues(vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(3) { index ->
+                        EntradaSimpleCard(
+                            entrada = EntradaHuacal(
+                                idEntrada = index + 1,
+                                fecha = "30/10/2025",
+                                nombreCliente = "Cliente ${index + 1}",
+                                cantidad = (index + 1) * 20,
+                                precio = 150.0 + (index * 50)
+                            ),
+                            onEdit = {},
+                            onDelete = {}
+                        )
+                    }
+                }
+
+                FooterTotal(
+                    cantidadEntradas = 3,
+                    totalGeneral = 15000.0
+                )
+            }
+        }
     }
 }

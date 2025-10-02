@@ -8,6 +8,7 @@ data class EntradaUiState(
     val nombreCliente: String = "",
     val cantidad: String = "",
     val precio: String = "",
+    val fechaError: String? = null,
     val nombreClienteError: String? = null,
     val cantidadError: String? = null,
     val precioError: String? = null,

@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -55,6 +56,7 @@ fun HomeScreen(
                 onClick = onNavigateToCreateEntrada,
                 containerColor = Color(0xFF4CAF50),
                 contentColor = Color.White,
+                modifier = Modifier.padding(bottom = 72.dp),
                 elevation = FloatingActionButtonDefaults.elevation(
                     defaultElevation = 8.dp,
                     pressedElevation = 12.dp
@@ -99,7 +101,7 @@ fun HomeScreen(
                     }
 
                     item {
-                        Spacer(modifier = Modifier.height(80.dp))
+                        Spacer(modifier = Modifier.height(100.dp))
                     }
                 }
             }
@@ -317,6 +319,92 @@ fun FooterTotal(
                         fontWeight = FontWeight.Bold
                     ),
                     color = Color(0xFF4CAF50)
+                )
+            }
+        }
+    }
+}
+
+// Preview del estado vacío
+@Preview(showSystemUi = true)
+@Composable
+fun HomeScreenEmptyPreview() {
+    MaterialTheme {
+        EmptyStateScreen(
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+}
+
+// Preview de una tarjeta de entrada
+@Preview(showBackground = true)
+@Composable
+fun EntradaSimpleCardPreview() {
+    MaterialTheme {
+        EntradaSimpleCard(
+            entrada = EntradaHuacal(
+                idEntrada = 1,
+                fecha = "01/10/2025",
+                nombreCliente = "Roronoa Zoro",
+                cantidad = 50,
+                precio = 150.0
+            ),
+            onEdit = {},
+            onDelete = {}
+        )
+    }
+}
+
+// Preview del footer con totales
+@Preview(showBackground = true)
+@Composable
+fun FooterTotalPreview() {
+    MaterialTheme {
+        FooterTotal(
+            cantidadEntradas = 5,
+            totalGeneral = 12500.50
+        )
+    }
+}
+
+// Preview de la pantalla completa con datos
+@Preview(showSystemUi = true)
+@Composable
+fun HomeScreenWithDataPreview() {
+    MaterialTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(horizontal = 8.dp),
+                    contentPadding = PaddingValues(vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(3) { index ->
+                        EntradaSimpleCard(
+                            entrada = EntradaHuacal(
+                                idEntrada = index + 1,
+                                fecha = "30/10/2025",
+                                nombreCliente = "Cliente ${index + 1}",
+                                cantidad = (index + 1) * 20,
+                                precio = 150.0 + (index * 50)
+                            ),
+                            onEdit = {},
+                            onDelete = {}
+                        )
+                    }
+                }
+
+                FooterTotal(
+                    cantidadEntradas = 3,
+                    totalGeneral = 15000.0
                 )
             }
         }

@@ -3,6 +3,7 @@ package edu.ucne.marianelaventura_ap2_p1.presentation.entrada
 import edu.ucne.marianelaventura_ap2_p1.domain.model.EntradaHuacal
 
 sealed class EntradaEvent {
+    data class FechaChanged(val fecha: String) : EntradaEvent()
     data class NombreClienteChanged(val nombreCliente: String) : EntradaEvent()
     data class CantidadChanged(val cantidad: String) : EntradaEvent()
     data class PrecioChanged(val precio: String) : EntradaEvent()

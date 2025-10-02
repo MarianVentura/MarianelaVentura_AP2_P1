@@ -7,8 +7,6 @@ import edu.ucne.marianelaventura_ap2_p1.domain.model.EntradaHuacal
 import edu.ucne.marianelaventura_ap2_p1.domain.usecase.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,6 +27,17 @@ class EntradaViewModel @Inject constructor(
 
     fun onEvent(event: EntradaEvent) {
         when (event) {
+            is EntradaEvent.FechaChanged -> {
+                _uiState.update {
+                    it.copy(
+                        fecha = event.fecha,
+                        fechaError = null,
+                        errorMessage = null,
+                        successMessage = null
+                    )
+                }
+            }
+
             is EntradaEvent.NombreClienteChanged -> {
                 _uiState.update {
                     it.copy(
@@ -105,6 +114,7 @@ class EntradaViewModel @Inject constructor(
                             cantidad = entrada.cantidad.toString(),
                             precio = entrada.precio.toString(),
                             isEditing = true,
+                            fechaError = null,
                             nombreClienteError = null,
                             cantidadError = null,
                             precioError = null,
@@ -127,13 +137,15 @@ class EntradaViewModel @Inject constructor(
         viewModelScope.launch {
             val state = _uiState.value
 
+            val fechaError = if (state.fecha.isBlank()) "La fecha es obligatoria" else null
             val nombreError = validateEntradaUseCase.validateNombreCliente(state.nombreCliente)
             val cantidadError = validateEntradaUseCase.validateCantidad(state.cantidad)
             val precioError = validateEntradaUseCase.validatePrecio(state.precio)
 
-            if (nombreError != null || cantidadError != null || precioError != null) {
+            if (fechaError != null || nombreError != null || cantidadError != null || precioError != null) {
                 _uiState.update {
                     it.copy(
+                        fechaError = fechaError,
                         nombreClienteError = nombreError,
                         cantidadError = cantidadError,
                         precioError = precioError,
@@ -145,11 +157,9 @@ class EntradaViewModel @Inject constructor(
 
             _uiState.update { it.copy(isLoading = true) }
 
-            val fechaActual = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
-
             val entrada = EntradaHuacal(
                 idEntrada = state.idEntrada,
-                fecha = fechaActual,
+                fecha = state.fecha.trim(),
                 nombreCliente = state.nombreCliente.trim(),
                 cantidad = state.cantidad.toInt(),
                 precio = state.precio.toDouble()
@@ -211,6 +221,7 @@ class EntradaViewModel @Inject constructor(
                 nombreCliente = entrada.nombreCliente,
                 cantidad = entrada.cantidad.toString(),
                 precio = entrada.precio.toString(),
+                fechaError = null,
                 nombreClienteError = null,
                 cantidadError = null,
                 precioError = null,

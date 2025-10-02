@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
@@ -97,7 +98,7 @@ fun EntradaScreenContent(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
-                        text = if (state.isEditing) "Editar Entrada" else "Registrar Nueva Entrada",
+                        text = if (state.isEditing) "Actualizar Información" else "Registrar Nueva Entrada",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold
                         ),
@@ -111,6 +112,30 @@ fun EntradaScreenContent(
                     )
 
                     HorizontalDivider(color = Color(0xFFE0E0E0))
+
+                    // Campo Fecha (NUEVO - EDITABLE)
+                    OutlinedTextField(
+                        value = state.fecha,
+                        onValueChange = { onEvent(EntradaEvent.FechaChanged(it)) },
+                        label = { Text("Fecha") },
+                        placeholder = { Text("Ej: 15/01/2025") },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.CalendarToday,
+                                contentDescription = null,
+                                tint = Color(0xFF4CAF50)
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        isError = state.fechaError != null,
+                        supportingText = {
+                            state.fechaError?.let {
+                                Text(it, color = MaterialTheme.colorScheme.error)
+                            }
+                        },
+                        singleLine = true
+                    )
 
                     OutlinedTextField(
                         value = state.nombreCliente,
@@ -183,73 +208,77 @@ fun EntradaScreenContent(
 
                     HorizontalDivider(color = Color(0xFFE0E0E0))
 
-                    Row(
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        OutlinedButton(
-                            onClick = {
-                                if (state.isEditing) {
-                                    onNavigateBack()
-                                } else {
-                                    onEvent(EntradaEvent.ClearForm)
-                                }
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(50.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            enabled = !state.isLoading
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                            Button(
+                                onClick = { onEvent(EntradaEvent.SaveEntrada) },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(50.dp),
+                                enabled = !state.isLoading,
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF5C6BC0)
+                                ),
+                                elevation = ButtonDefaults.buttonElevation(
+                                    defaultElevation = 4.dp
+                                )
                             ) {
-                                Icon(
-                                    imageVector = if (state.isEditing) Icons.Default.Close else Icons.Default.Clear,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Text(if (state.isEditing) "Cancelar" else "Limpiar")
-                            }
-                        }
-
-                        Button(
-                            onClick = { onEvent(EntradaEvent.SaveEntrada) },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(50.dp),
-                            enabled = !state.isLoading,
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF4CAF50)
-                            ),
-                            elevation = ButtonDefaults.buttonElevation(
-                                defaultElevation = 4.dp
-                            )
-                        ) {
-                            if (state.isLoading) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
-                                    color = Color.White,
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(20.dp)
+                                if (state.isLoading) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        color = Color.White,
+                                        strokeWidth = 2.dp
                                     )
+                                } else {
                                     Text(
-                                        if (state.isEditing) "Actualizar" else "Guardar",
+                                        "Guardar",
                                         fontWeight = FontWeight.SemiBold
                                     )
                                 }
                             }
+
+                            if (state.isEditing) {
+                                OutlinedButton(
+                                    onClick = {
+                                        onEvent(EntradaEvent.DeleteEntrada(state.idEntrada))
+                                        onNavigateBack()
+                                    },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(50.dp),
+                                    enabled = !state.isLoading,
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        contentColor = Color(0xFFF44336)
+                                    )
+                                ) {
+                                    Text(
+                                        "Eliminar",
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                            }
+                        }
+
+                        OutlinedButton(
+                            onClick = onNavigateBack,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
+                            enabled = !state.isLoading,
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(
+                                "Cancelar",
+                                fontWeight = FontWeight.SemiBold
+                            )
                         }
                     }
                 }
@@ -330,5 +359,84 @@ fun EntradaScreenContent(
                 }
             }
         }
+    }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+fun EntradaScreenNewPreview() {
+    MaterialTheme {
+        EntradaScreenContent(
+            state = EntradaUiState(
+                idEntrada = 0,
+                nombreCliente = "",
+                cantidad = "",
+                precio = "",
+                isEditing = false
+            ),
+            onEvent = {},
+            onNavigateBack = {}
+        )
+    }
+}
+
+// Preview del formulario Editar
+@Preview(showSystemUi = true)
+@Composable
+fun EntradaScreenEditPreview() {
+    MaterialTheme {
+        EntradaScreenContent(
+            state = EntradaUiState(
+                idEntrada = 1,
+                fecha = "01/10/2025",
+                nombreCliente = "Roronoa Zoro",
+                cantidad = "50",
+                precio = "150.00",
+                isEditing = true
+            ),
+            onEvent = {},
+            onNavigateBack = {}
+        )
+    }
+}
+
+// Preview del formulario con errores para la validación
+@Preview(showSystemUi = true)
+@Composable
+fun EntradaScreenWithErrorsPreview() {
+    MaterialTheme {
+        EntradaScreenContent(
+            state = EntradaUiState(
+                nombreCliente = "Zo",
+                cantidad = "-5",
+                precio = "abc",
+                nombreClienteError = "El nombre debe tener al menos 3 caracteres",
+                cantidadError = "La cantidad debe ser mayor a 0",
+                precioError = "El precio debe ser un número válido",
+                isEditing = false
+            ),
+            onEvent = {},
+            onNavigateBack = {}
+        )
+    }
+}
+
+
+// Preview con mensaje de éxito
+@Preview(showSystemUi = true)
+@Composable
+fun EntradaScreenSuccessPreview() {
+    MaterialTheme {
+        EntradaScreenContent(
+            state = EntradaUiState(
+                nombreCliente = "Roronoa Zoro",
+                cantidad = "50",
+                precio = "150.00",
+                successMessage = "Entrada guardada exitosamente",
+                isEditing = false
+            ),
+            onEvent = {},
+            onNavigateBack = {}
+        )
     }
 }

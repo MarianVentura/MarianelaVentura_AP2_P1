@@ -1,32 +1,35 @@
 package edu.ucne.marianelaventura_ap2_p1.data.local.database
 
 import androidx.room.Database
+import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.room.TypeConverter
-import androidx.room.TypeConverters
-import edu.ucne.marianelaventura_ap2_p1.data.local.dao.EntradasHuacalesDao
-import edu.ucne.marianelaventura_ap2_p1.data.local.entities.EntradasHuacalesEntity
-import java.util.Date
-
-class Converters {
-    @TypeConverter
-    fun fromTimestamp(value: Long?): Date? {
-        return value?.let { Date(it) }
-    }
-
-    @TypeConverter
-    fun dateToTimestamp(date: Date?): Long? {
-        return date?.time
-    }
-}
+import android.content.Context
+import edu.ucne.marianelaventura_ap2_p1.data.local.dao.EntradaHuacalDao
+import edu.ucne.marianelaventura_ap2_p1.data.local.entities.EntradaHuacalEntity
 
 @Database(
-    entities = [EntradasHuacalesEntity::class],
+    entities = [EntradaHuacalEntity::class],
     version = 1,
     exportSchema = false
 )
-@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun entradasHuacalesDao(): EntradasHuacalesDao
-}
+    abstract fun entradaHuacalDao(): EntradaHuacalDao
 
+    companion object {
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        fun getDatabase(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "huacales_database"
+                ).fallbackToDestructiveMigration()
+                    .build()
+                INSTANCE = instance
+                instance
+            }
+        }
+    }
+}

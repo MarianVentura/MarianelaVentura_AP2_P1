@@ -1,10 +1,10 @@
 package edu.ucne.marianelaventura_ap2_p1.data.mappers
 
-import edu.ucne.marianelaventura_ap2_p1.data.local.entities.EntradasHuacalesEntity
-import edu.ucne.marianelaventura_ap2_p1.domain.model.EntradasHuacales
+import edu.ucne.marianelaventura_ap2_p1.data.local.entities.EntradaHuacalEntity
+import edu.ucne.marianelaventura_ap2_p1.domain.model.EntradaHuacal
 
-fun EntradasHuacalesEntity.toDomain(): EntradasHuacales {
-    return EntradasHuacales(
+fun EntradaHuacalEntity.toDomain(): EntradaHuacal {
+    return EntradaHuacal(
         idEntrada = idEntrada,
         fecha = fecha,
         nombreCliente = nombreCliente,
@@ -13,8 +13,8 @@ fun EntradasHuacalesEntity.toDomain(): EntradasHuacales {
     )
 }
 
-fun EntradasHuacales.toEntity(): EntradasHuacalesEntity {
-    return EntradasHuacalesEntity(
+fun EntradaHuacal.toEntity(): EntradaHuacalEntity {
+    return EntradaHuacalEntity(
         idEntrada = idEntrada,
         fecha = fecha,
         nombreCliente = nombreCliente,
